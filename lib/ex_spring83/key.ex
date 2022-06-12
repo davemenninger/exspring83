@@ -64,6 +64,8 @@ defmodule ExSpring83.Key do
     end
   end
 
+  # TODO validate unexpired
+
   @spec puts_keypair({Ed25519.key(), Ed25519.key()}) :: :ok
   def puts_keypair({secret_key, public_key}) do
     IO.puts("""
