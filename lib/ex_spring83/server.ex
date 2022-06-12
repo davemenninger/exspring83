@@ -15,7 +15,7 @@ defmodule ExSpring83.Server do
 
   get "/" do
     conn
-    |> put_resp_content_type("text/plain")
+    |> put_resp_content_type("text/html")
     |> put_resp_header("spring-difficulty", "#{difficulty_factor()}")
     |> send_resp(200, "difficulty_factor: #{difficulty_factor()}")
   end

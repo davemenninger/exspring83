@@ -17,6 +17,10 @@ defmodule ExSpring83.ServerTest do
     difficulty_factor = String.to_float(difficulty_header)
 
     assert is_number(difficulty_factor)
+
+    [content_type_header] = Plug.Conn.get_resp_header(conn, "content-type")
+
+    assert "text/html; charset=utf-8" == content_type_header
   end
 
   test "returns spring version header" do
