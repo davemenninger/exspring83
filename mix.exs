@@ -27,6 +27,7 @@ defmodule ExSpring83.MixProject do
 
   defp deps do
     [
+      {:cachex, "~> 3.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ed25519, "~> 1.4"},
       {:excoveralls, "~> 0.14.5", only: [:dev, :test]},
