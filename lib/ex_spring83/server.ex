@@ -10,12 +10,12 @@ defmodule ExSpring83.Server do
 
   plug(Plug.Logger)
   plug(:match)
+  plug :spring83_version_header
   plug(:dispatch)
 
   get "/" do
     conn
     |> put_resp_content_type("text/plain")
-    |> put_resp_header("spring-version", "83")
     |> put_resp_header("spring-difficulty", "#{difficulty_factor()}")
     |> send_resp(200, "difficulty_factor: #{difficulty_factor()}")
   end
@@ -23,7 +23,6 @@ defmodule ExSpring83.Server do
   get "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
     conn
     |> put_resp_content_type("text/plain")
-    |> put_resp_header("spring-version", "83")
     |> send_resp(200, "you asked for the test key!")
   end
 
@@ -39,7 +38,6 @@ defmodule ExSpring83.Server do
 
           conn
           |> put_resp_content_type("text/html")
-          |> put_resp_header("spring-version", "83")
           |> put_resp_header("authorization", "Spring-83 #{signature}")
           |> send_resp(200, "you asked for key: #{key} - board: #{board}")
       end
@@ -105,5 +103,9 @@ defmodule ExSpring83.Server do
   def difficulty_factor(number_of_boards_stored \\ 1) do
     (number_of_boards_stored / 10_000_000)
     |> Float.pow(4)
+  end
+
+  def spring83_version_header(conn, _opts) do
+    put_resp_header(conn, "spring-version", "83")
   end
 end
