@@ -8,16 +8,14 @@ defmodule ExSpring83.ServerTest do
   @opts Server.init([])
 
   test "returns difficulty_factor" do
-    conn =
-      conn(:get, "/")
-      |> Server.call([])
-      |> IO.inspect()
+    conn = conn(:get, "/") |> Server.call([])
 
     assert conn.status == 200
     assert String.contains?(conn.resp_body, "difficulty_factor")
 
     [difficulty_header] = Plug.Conn.get_resp_header(conn, "spring-difficulty")
-    assert String.contains?(difficulty_header, "a number")
+    difficulty_factor = String.to_float(difficulty_header)
+    assert is_number(difficulty_factor)
   end
 
   test "returns spring version header" do
