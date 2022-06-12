@@ -1,21 +1,28 @@
 # ExSpring83
 
-**TODO: Add description**
+This is an attempt to implement the Spring '83 spec designed by Robin Sloan at: [Spring '83](https://github.com/robinsloan/spring-83-spec/blob/main/draft-20220609.md)
 
-## Installation
+Further description of Spring '83 can be found in Robin's newsletter: [Specifying Spring ‘83](https://www.robinsloan.com/lab/specifying-spring-83/)
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `exspring83` to your list of dependencies in `mix.exs`:
+## Key pairs
 
-```elixir
-def deps do
-  [
-    {:exspring83, "~> 0.1.0"}
-  ]
-end
+To generate a Spring '83 key pair, run `mix spring83.key_gen`
+
+## Server
+
+To run the ExSpring83 server, run `mix run --no-halt` and check http://localhost:4040/
+
+## Client
+
+Not implemented.  In the meantime:
+
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/exspring83](https://hexdocs.pm/exspring83).
-
+ curl -v -X PUT \
+         -H "Spring-Version: 83" \
+         -H "Content-Type: text/html;charset=utf-8" \
+         -H "If-Unmodified-Since: Sun, 12 Jun 2022 02:39:31 GMT" \
+         -H "Authorization: Spring-83 Signature=E35366E1E4D206DB978E997D471AC52A86F9DC4F28893B6530D04929AD9102A866789C3DBE7F221C88D76CDA4553E57F6E7024608906736EDBF229583F1DBE05" \
+         -d '<meta http-equiv="last-modified" content="Sun, 12 Jun 2022 02:39:31 GMT">' \
+         http://localhost:4040/132EBED3BEC65A3CEAA6718574AD2EE92A2C83D6FED547807E7DC9492624F31F
+           
+```
