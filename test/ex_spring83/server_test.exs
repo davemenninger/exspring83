@@ -32,13 +32,15 @@ defmodule ExSpring83.ServerTest do
       |> Server.call([])
 
     assert conn.status == 200
+
+    [version_header] = Plug.Conn.get_resp_header(conn, "spring-version")
+    assert String.contains?(version_header, "83")
   end
 
   # GET /:key
   # spring version header
   # spring auth header
   # board body
-  # test key
 
   # PUT /:key
   # size

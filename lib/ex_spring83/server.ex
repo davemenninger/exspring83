@@ -21,7 +21,10 @@ defmodule ExSpring83.Server do
   end
 
   get "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
-    send_resp(conn, 200, "you asked for the test key!")
+    conn
+    |> put_resp_content_type("text/plain")
+    |> put_resp_header("spring-version", "83")
+    |> send_resp(200, "you asked for the test key!")
   end
 
   get "/:key" do
@@ -80,13 +83,11 @@ defmodule ExSpring83.Server do
         # its last-modified meta tag isn't parsable as an HTTP-format date and time; or
         # its last-modified meta tag is set to a date in the future.
 
+        # # HTTP date format:
         # Calendar.strftime(DateTime.now!("Etc/UTC"), "%a, %d %b %Y %H:%M:%S GMT")
 
         # MAX_SIG = (2**256 - 1)
-        # key_threshold = MAX_SIG * ( 1.0 - difficulty_factor)
-
-        # MAX_KEY = (2**256 - 1)
-        # key_threshold = MAX_KEY * ( 1.0 - 0.52 ) = <an inscrutable gigantic number>
+        # key_threshold = MAX_KEY * ( 1.0 - difficulty_factor ) = <an inscrutable gigantic number>
         # The server must reject PUT requests for new keys that are not less than <an inscrutable gigantic number>.
         conn
         |> send_resp(202, "you gave me key: #{key} and body #{body}")
@@ -94,6 +95,11 @@ defmodule ExSpring83.Server do
       {:more, _partial_body, conn} ->
         conn |> send_resp(413, "board too large")
     end
+  end
+
+  match _ do
+    conn
+    |> send_resp(404, "Not found")
   end
 
   def difficulty_factor(number_of_boards_stored \\ 1) do
