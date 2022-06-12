@@ -48,4 +48,16 @@ defmodule ExSpring83.ServerTest do
   # signature
   # difficulty_factor
   # test key
+
+  test "doesn't accept a board for the test key" do
+    conn =
+      conn(
+        :put,
+        "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983",
+        "<p>a board</p>"
+      )
+      |> Server.call([])
+
+    assert conn.status == 401
+  end
 end
