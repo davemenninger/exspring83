@@ -19,11 +19,10 @@ defmodule Mix.Tasks.Spring83.KeyGen do
 
     Key.puts_keypair({secret_key, public_key})
 
-    if Key.valid_public_key?(public_key) do
+    if Key.valid_public_key?(Base.encode16(public_key)) do
       IO.puts("found one!")
       Key.puts_keypair({secret_key, public_key})
     else
-      IO.puts("nope...")
       # TODO don't sleep, use message passing
       Process.sleep(@sleep)
       run(args)
