@@ -26,6 +26,14 @@ defmodule ExSpring83.ServerTest do
     assert String.contains?(version_header, "83")
   end
 
+  test "responds for the test key" do
+    conn =
+      conn(:get, "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983")
+      |> Server.call([])
+
+    assert conn.status == 200
+  end
+
   # GET /:key
   # spring version header
   # spring auth header
