@@ -11,7 +11,7 @@ To generate a Spring '83 key pair, run `mix spring83.key_gen`
 
 ## Server
 
-To run the ExSpring83 server, run `mix run --no-halt` and check http://localhost:4040/
+To run the ExSpring83 server, run `mix spring83.server` (which is an alias for `mix run --no-halt`) and check [http://localhost:4040/](http://localhost:4040/)
 
 ## Client
 

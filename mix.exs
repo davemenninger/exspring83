@@ -3,6 +3,7 @@ defmodule ExSpring83.MixProject do
 
   def project do
     [
+      aliases: aliases(),
       app: :exspring83,
       version: "0.1.0",
       elixir: "~> 1.12",
@@ -34,5 +35,9 @@ defmodule ExSpring83.MixProject do
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:plug_cowboy, "~> 2.0"}
     ]
+  end
+
+  defp aliases do
+    ["spring83.server": "run --no-halt"]
   end
 end
