@@ -15,15 +15,14 @@ defmodule ExSpring83.ServerTest do
 
     [difficulty_header] = Plug.Conn.get_resp_header(conn, "spring-difficulty")
     difficulty_factor = String.to_float(difficulty_header)
+
     assert is_number(difficulty_factor)
   end
 
   test "returns spring version header" do
-    conn =
-      conn(:get, "/")
-      |> Server.call([])
-
+    conn = conn(:get, "/") |> Server.call([])
     [version_header] = Plug.Conn.get_resp_header(conn, "spring-version")
+
     assert String.contains?(version_header, "83")
   end
 
