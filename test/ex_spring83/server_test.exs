@@ -64,17 +64,15 @@ defmodule ExSpring83.ServerTest do
   end
 
   test "accepts a board with a valid signature" do
-    signature =
-      "E35366E1E4D206DB978E997D471AC52A86F9DC4F28893B6530D04929AD9102A866789C3DBE7F221C88D76CDA4553E57F6E7024608906736EDBF229583F1DBE05"
-
     message = ~S(<meta http-equiv="last-modified" content="Sun, 12 Jun 2022 02:39:31 GMT">)
 
+    public_key = ExSpring83.Key.normalize("810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049")
+    secret_key = ExSpring83.Key.normalize("e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018")
+    signature = Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()
+
+
     conn =
-      conn(
-        :put,
-        "/132EBED3BEC65A3CEAA6718574AD2EE92A2C83D6FED547807E7DC9492624F31F",
-        "#{message}"
-      )
+      conn(:put, "/#{public_key.string}", "#{message}")
       |> put_req_header("content-type", "text/html")
       |> put_req_header("spring-version", "83")
       |> put_req_header("if-unmodified-since", "#{nil}")
@@ -84,7 +82,7 @@ defmodule ExSpring83.ServerTest do
     assert conn.status == 202
 
     conn =
-      conn(:get, "/132EBED3BEC65A3CEAA6718574AD2EE92A2C83D6FED547807E7DC9492624F31F")
+      conn(:get, "/#{public_key.string}")
       |> Server.call([])
 
     assert conn.resp_body == message

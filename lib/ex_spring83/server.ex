@@ -39,10 +39,10 @@ defmodule ExSpring83.Server do
           conn
           |> send_resp(404, "key #{key.string} not found")
 
-        {:ok, %{board: board, signature: signature}} ->
+        {:ok, %Boards{body: body, signature: signature}} ->
           conn
           |> put_resp_header("authorization", "Spring-83 #{signature}")
-          |> send_resp(200, "#{board}")
+          |> send_resp(200, "#{body}")
       end
     else
       conn
@@ -76,8 +76,8 @@ defmodule ExSpring83.Server do
             ["Spring-83 Signature=" <> signature] ->
               Logger.debug("sig: #{inspect(signature)}")
 
-              if Ed25519.valid_signature?(signature |> Base.decode16!(), body, key.binary) do
-                Boards.put(key, body, signature)
+              if Ed25519.valid_signature?(Base.decode16!(signature), body, key.binary) do
+                %Boards{body: body, signature: signature} |> Boards.put(key)
               else
                 :TODO
               end

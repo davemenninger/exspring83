@@ -1,22 +1,32 @@
 defmodule ExSpring83.Boards do
   @moduledoc """
   store and retrieve boards
+
+  TODO: Boards -> Board
   """
 
   alias ExSpring83.Key
 
-  # TODO: struct
-  @type t :: String.t()
+  alias __MODULE__
 
-  @spec get(Key.t()) :: Board.t()
+  @enforce_keys [:body, :signature]
+  defstruct body: nil, signature: nil
+
+  @type t :: %__MODULE__{body: String.t(), signature: Ed25519.signature()}
+
+  @spec get(Key.t()) :: Boards.t()
   def get(%Key{string: public_key}) do
     Cachex.get(:boards, public_key)
   end
 
-  @spec put(Key.t(), Board.t(), Ed25519.signature()) :: {:ok, any()} | {:error, any()}
-  def put(%Key{} = public_key, board, signature) do
-    if Ed25519.valid_signature?(signature |> Base.decode16!(), board, public_key.binary) do
-      Cachex.put(:boards, public_key.string, %{board: board, signature: signature})
+  @spec put(Boards.t(), Key.t()) :: {:ok, any()} | {:error, any()}
+  def put(%Boards{} = board, %Key{} = public_key) do
+    if Ed25519.valid_signature?(
+         board.signature |> Base.decode16!(),
+         board.body,
+         public_key.binary
+       ) do
+      Cachex.put(:boards, public_key.string, board)
     else
       {:error, :invalid_signature}
     end
