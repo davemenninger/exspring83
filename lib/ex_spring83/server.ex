@@ -12,13 +12,14 @@ defmodule ExSpring83.Server do
 
   plug(Plug.Logger)
   plug(:match)
-  plug(:spring83_headers)
+  plug(ExSpring83.Server.Headers)
   plug(:dispatch)
 
   get "/" do
     send_resp(conn, 200, "difficulty_factor: #{difficulty_factor()}")
   end
 
+  # TODO: check for the test key in a plug
   get "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
     Logger.info("serving test key")
 
@@ -54,7 +55,6 @@ defmodule ExSpring83.Server do
   end
 
   put "/:key" do
-    # TODO: do this in a plug
     key = Key.normalize(key)
 
     if Key.valid_public_key?(key) do
@@ -119,26 +119,5 @@ defmodule ExSpring83.Server do
 
   def http_format_datetime(datetime) do
     datetime |> Calendar.strftime("%a, %d %b %Y %H:%M:%S %Z")
-  end
-
-  # TODO: move these to a module
-
-  def spring83_headers(conn, opts) do
-    conn
-    |> spring83_content_type_header(opts)
-    |> spring83_version_header(opts)
-    |> spring83_difficulty_header(opts)
-  end
-
-  def spring83_content_type_header(conn, _opts) do
-    put_resp_content_type(conn, "text/html")
-  end
-
-  def spring83_version_header(conn, _opts) do
-    put_resp_header(conn, "spring-version", "83")
-  end
-
-  def spring83_difficulty_header(conn, _opts) do
-    put_resp_header(conn, "spring-difficulty", "#{difficulty_factor()}")
   end
 end
