@@ -26,7 +26,7 @@ defmodule ExSpring83.Server do
     send_resp(
       conn,
       200,
-      "you asked for the test key! the current timestamp is: #{DateTime.now!("Etc/UTC") |> http_format_datetime()}"
+      "you asked for the test key! the current timestamp is: #{http_format_datetime()}"
     )
   end
 
@@ -62,7 +62,10 @@ defmodule ExSpring83.Server do
       case Plug.Conn.get_req_header(conn, "if-unmodified-since") do
         [date_string] ->
           # TODO: compare this to the modified date on our copy of this board
-          date_string
+          case Timex.parse(date_string, "%a, %d %b %Y %H:%M:%S %Z", :strftime) do
+            {:ok, dt} -> :TODO
+            _ -> :TODO
+          end
 
         _ ->
           :TODO
@@ -117,7 +120,7 @@ defmodule ExSpring83.Server do
     |> Float.pow(4)
   end
 
-  def http_format_datetime(datetime) do
+  def http_format_datetime(datetime \\ DateTime.now!("Etc/UTC")) do
     datetime |> Calendar.strftime("%a, %d %b %Y %H:%M:%S %Z")
   end
 end

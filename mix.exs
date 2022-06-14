@@ -33,7 +33,8 @@ defmodule ExSpring83.MixProject do
       {:ed25519, "~> 1.4"},
       {:excoveralls, "~> 0.14.5", only: [:dev, :test]},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:timex, "~> 3.7"}
     ]
   end
 

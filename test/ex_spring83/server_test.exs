@@ -75,7 +75,7 @@ defmodule ExSpring83.ServerTest do
       conn(:put, "/#{public_key.string}", "#{message}")
       |> put_req_header("content-type", "text/html")
       |> put_req_header("spring-version", "83")
-      |> put_req_header("if-unmodified-since", "#{nil}")
+      |> put_req_header("if-unmodified-since", "#{Server.http_format_datetime()}")
       |> put_req_header("authorization", "Spring-83 Signature=#{signature}")
       |> Server.call([])
 
