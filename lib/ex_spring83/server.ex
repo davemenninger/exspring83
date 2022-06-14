@@ -8,7 +8,7 @@ defmodule ExSpring83.Server do
   use Plug.Router
 
   alias ExSpring83.Key
-  alias ExSpring83.Boards
+  alias ExSpring83.Board
 
   plug(Plug.Logger)
   plug(:match)
@@ -34,12 +34,12 @@ defmodule ExSpring83.Server do
     key = Key.normalize(key)
 
     if Key.valid_public_key?(key) do
-      case Boards.get(key) do
+      case Board.get(key) do
         {:ok, nil} ->
           conn
           |> send_resp(404, "key #{key.string} not found")
 
-        {:ok, %Boards{body: body, signature: signature}} ->
+        {:ok, %Board{body: body, signature: signature}} ->
           conn
           |> put_resp_header("authorization", "Spring-83 #{signature}")
           |> send_resp(200, "#{body}")
@@ -76,7 +76,7 @@ defmodule ExSpring83.Server do
               Logger.debug("sig: #{inspect(signature)}")
 
               if Ed25519.valid_signature?(Base.decode16!(signature), body, key.binary) do
-                %Boards{body: body, signature: signature} |> Boards.put(key)
+                %Board{body: body, signature: signature} |> Board.put(key)
               else
                 :TODO
               end
