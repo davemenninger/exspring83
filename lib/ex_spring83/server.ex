@@ -3,6 +3,8 @@ defmodule ExSpring83.Server do
   https://github.com/robinsloan/spring-83-spec/blob/main/draft-20220609.md#boards-on-the-server
   """
 
+  require Logger
+
   use Plug.Router
 
   alias ExSpring83.Key
@@ -10,88 +12,99 @@ defmodule ExSpring83.Server do
 
   plug(Plug.Logger)
   plug(:match)
-  plug :spring83_version_header
+  plug(:spring83_headers)
   plug(:dispatch)
 
   get "/" do
-    conn
-    |> put_resp_content_type("text/html")
-    |> put_resp_header("spring-difficulty", "#{difficulty_factor()}")
-    |> send_resp(200, "difficulty_factor: #{difficulty_factor()}")
+    send_resp(conn, 200, "difficulty_factor: #{difficulty_factor()}")
   end
 
   get "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
-    conn
-    |> put_resp_content_type("text/plain")
-    |> send_resp(200, "you asked for the test key!")
+    Logger.info("serving test key")
+
+    send_resp(
+      conn,
+      200,
+      "you asked for the test key! the current timestamp is: #{DateTime.now!("Etc/UTC") |> http_format_datetime()}"
+    )
   end
 
   get "/:key" do
+    # TODO: do this in a plug
+    key = Key.normalize(key)
+
     if Key.valid_public_key?(key) do
       case Boards.get(key) do
         {:ok, nil} ->
           conn
-          |> send_resp(404, "key #{key} not found")
+          |> send_resp(404, "key #{key.string} not found")
 
-        {:ok, board} ->
-          signature = :TODO
-
+        {:ok, %{board: board, signature: signature}} ->
           conn
-          |> put_resp_content_type("text/html")
           |> put_resp_header("authorization", "Spring-83 #{signature}")
-          |> send_resp(200, "you asked for key: #{key} - board: #{board}")
+          |> send_resp(200, "#{board}")
       end
     else
       conn
-      |> send_resp(404, "key #{key} not found")
+      |> send_resp(404, "invalid key #{key.string}")
     end
   end
 
-  # https://github.com/robinsloan/spring-83-spec/blob/main/draft-20220609.md#verifying-boards
   put "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
     send_resp(conn, 401, "you tried to publish the test key!")
   end
 
   put "/:key" do
-    # check if unmodified
-    case Plug.Conn.get_req_header(conn, "if-unmodified-since") do
-      [date_string] ->
-        # TODO: compare this to the modified date on our copy of this board
-        date_string
+    # TODO: do this in a plug
+    key = Key.normalize(key)
 
-      _ ->
-        :TODO
-    end
+    if Key.valid_public_key?(key) do
+      # check if unmodified
+      case Plug.Conn.get_req_header(conn, "if-unmodified-since") do
+        [date_string] ->
+          # TODO: compare this to the modified date on our copy of this board
+          date_string
 
-    case Plug.Conn.read_body(conn, length: 2217) do
-      {:ok, body, conn} ->
-        # check signature
-        case Plug.Conn.get_req_header(conn, "authorization") do
-          ["Spring-83 Signature=" <> signature] ->
-            Ed25519.valid_signature?(signature |> Base.decode16!(), body, key |> Base.decode16!())
+        _ ->
+          :TODO
+      end
 
-          _ ->
-            :TODO
-        end
+      case Plug.Conn.read_body(conn, length: 2217) do
+        {:ok, body, conn} ->
+          # check signature
+          case Plug.Conn.get_req_header(conn, "authorization") do
+            ["Spring-83 Signature=" <> signature] ->
+              Logger.debug("sig: #{inspect(signature)}")
 
-        # The server must reject the PUT request, returning 400 Bad Request, if
+              if Ed25519.valid_signature?(signature |> Base.decode16!(), body, key.binary) do
+                Boards.put(key, body, signature)
+              else
+                :TODO
+              end
 
-        # the board is transmitted without a last-modified meta tag; or
-        # it is transmitted with more than one last-modified meta tag; or
-        # its last-modified meta tag isn't parsable as an HTTP-format date and time; or
-        # its last-modified meta tag is set to a date in the future.
+            _ ->
+              :TODO
+          end
 
-        # # HTTP date format:
-        # Calendar.strftime(DateTime.now!("Etc/UTC"), "%a, %d %b %Y %H:%M:%S GMT")
+          # The server must reject the PUT request, returning 400 Bad Request, if
 
-        # MAX_SIG = (2**256 - 1)
-        # key_threshold = MAX_KEY * ( 1.0 - difficulty_factor ) = <an inscrutable gigantic number>
-        # The server must reject PUT requests for new keys that are not less than <an inscrutable gigantic number>.
-        conn
-        |> send_resp(202, "you gave me key: #{key} and body #{body}")
+          # the board is transmitted without a last-modified meta tag; or
+          # it is transmitted with more than one last-modified meta tag; or
+          # its last-modified meta tag isn't parsable as an HTTP-format date and time; or
+          # its last-modified meta tag is set to a date in the future.
 
-      {:more, _partial_body, conn} ->
-        conn |> send_resp(413, "board too large")
+          # MAX_SIG = (2**256 - 1)
+          # key_threshold = MAX_KEY * ( 1.0 - difficulty_factor ) = <an inscrutable gigantic number>
+          # The server must reject PUT requests for new keys that are not less than <an inscrutable gigantic number>.
+          conn
+          |> send_resp(202, "you gave me key: #{key.string} and body #{body}")
+
+        {:more, _partial_body, conn} ->
+          conn |> send_resp(413, "board too large")
+      end
+    else
+      conn
+      |> send_resp(400, "invalid key #{key.string}")
     end
   end
 
@@ -105,7 +118,28 @@ defmodule ExSpring83.Server do
     |> Float.pow(4)
   end
 
+  def http_format_datetime(datetime) do
+    datetime |> Calendar.strftime("%a, %d %b %Y %H:%M:%S %Z")
+  end
+
+  # TODO: move these to a module
+
+  def spring83_headers(conn, opts) do
+    conn
+    |> spring83_content_type_header(opts)
+    |> spring83_version_header(opts)
+    |> spring83_difficulty_header(opts)
+  end
+
+  def spring83_content_type_header(conn, _opts) do
+    put_resp_content_type(conn, "text/html")
+  end
+
   def spring83_version_header(conn, _opts) do
     put_resp_header(conn, "spring-version", "83")
+  end
+
+  def spring83_difficulty_header(conn, _opts) do
+    put_resp_header(conn, "spring-difficulty", "#{difficulty_factor()}")
   end
 end

@@ -19,6 +19,8 @@ defmodule Mix.Tasks.Spring83.KeyGen do
 
     Key.puts_keypair({secret_key, public_key})
 
+    # TODO: support looking for the current year + 1
+    # TODO: normalize key
     if Key.valid_public_key?(Base.encode16(public_key)) do
       IO.puts("found one!")
       Key.puts_keypair({secret_key, public_key})

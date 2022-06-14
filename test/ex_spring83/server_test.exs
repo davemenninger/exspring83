@@ -49,9 +49,7 @@ defmodule ExSpring83.ServerTest do
   # PUT /:key
   # size
   # timestamp
-  # signature
   # difficulty_factor
-  # test key
 
   test "doesn't accept a board for the test key" do
     conn =
@@ -63,5 +61,35 @@ defmodule ExSpring83.ServerTest do
       |> Server.call([])
 
     assert conn.status == 401
+  end
+
+  test "accepts a board with a valid signature" do
+    signature =
+      "E35366E1E4D206DB978E997D471AC52A86F9DC4F28893B6530D04929AD9102A866789C3DBE7F221C88D76CDA4553E57F6E7024608906736EDBF229583F1DBE05"
+
+    message = ~S(<meta http-equiv="last-modified" content="Sun, 12 Jun 2022 02:39:31 GMT">)
+
+    conn =
+      conn(
+        :put,
+        "/132EBED3BEC65A3CEAA6718574AD2EE92A2C83D6FED547807E7DC9492624F31F",
+        "#{message}"
+      )
+      |> put_req_header("content-type", "text/html")
+      |> put_req_header("spring-version", "83")
+      |> put_req_header("if-unmodified-since", "#{nil}")
+      |> put_req_header("authorization", "Spring-83 Signature=#{signature}")
+      |> Server.call([])
+
+    assert conn.status == 202
+
+    conn =
+      conn(:get, "/132EBED3BEC65A3CEAA6718574AD2EE92A2C83D6FED547807E7DC9492624F31F")
+      |> Server.call([])
+
+    assert conn.resp_body == message
+  end
+
+  test "rejects a board with a bad signature" do
   end
 end
