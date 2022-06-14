@@ -14,7 +14,7 @@ defmodule ExSpring83.Boards do
 
   @type t :: %__MODULE__{body: String.t(), signature: Ed25519.signature()}
 
-  @spec get(Key.t()) :: Boards.t()
+  @spec get(Key.t()) :: {:ok, Boards.t() | nil}
   def get(%Key{string: public_key}) do
     Cachex.get(:boards, public_key)
   end

@@ -30,7 +30,6 @@ defmodule ExSpring83.Server do
   end
 
   get "/:key" do
-    # TODO: do this in a plug
     key = Key.normalize(key)
 
     if Key.valid_public_key?(key) do
