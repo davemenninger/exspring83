@@ -30,9 +30,10 @@ defmodule ExSpring83.MixProject do
     [
       {:cachex, "~> 3.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ed25519, "~> 1.4"},
       {:excoveralls, "~> 0.14.5", only: [:dev, :test]},
-      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:floki, "~> 0.32.1"},
       {:plug_cowboy, "~> 2.0"},
       {:timex, "~> 3.7"}
     ]

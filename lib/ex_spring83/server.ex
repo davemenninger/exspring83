@@ -7,8 +7,11 @@ defmodule ExSpring83.Server do
 
   use Plug.Router
 
-  alias ExSpring83.Key
   alias ExSpring83.Board
+  alias ExSpring83.Key
+
+  # TODO: break Boards/Board into two modules service/struct
+  @board_service ExSpring83.Board
 
   plug(Plug.Logger)
   plug(:match)
@@ -34,7 +37,7 @@ defmodule ExSpring83.Server do
     key = Key.normalize(key)
 
     if Key.valid_public_key?(key) do
-      case Board.get(key) do
+      case @board_service.get(key) do
         {:ok, nil} ->
           conn
           |> send_resp(404, "key #{key.string} not found")
@@ -73,13 +76,21 @@ defmodule ExSpring83.Server do
 
       case Plug.Conn.read_body(conn, length: 2217) do
         {:ok, body, conn} ->
+          [last_modified] =
+            body
+            |> Floki.parse_fragment!()
+            |> Floki.find("meta")
+            |> Floki.attribute("content")
+
+          Logger.debug("last modified: #{last_modified}")
+
           # check signature
           case Plug.Conn.get_req_header(conn, "authorization") do
             ["Spring-83 Signature=" <> signature] ->
               Logger.debug("sig: #{inspect(signature)}")
 
               if Ed25519.valid_signature?(Base.decode16!(signature), body, key.binary) do
-                %Board{body: body, signature: signature} |> Board.put(key)
+                %Board{body: body, signature: signature} |> @board_service.put(key)
               else
                 :TODO
               end
@@ -115,9 +126,18 @@ defmodule ExSpring83.Server do
     |> send_resp(404, "Not found")
   end
 
-  def difficulty_factor(number_of_boards_stored \\ 1) do
+  def boards_stored(board_service \\ @board_service) do
+    board_service.boards_stored()
+  end
+
+  def difficulty_factor(number_of_boards_stored \\ boards_stored()) do
     (number_of_boards_stored / 10_000_000)
     |> Float.pow(4)
+  end
+
+  def key_threshold(difficulty_factor \\ difficulty_factor()) do
+    max_key = Integer.pow(2, 256) - 1
+    max_key * (1 - difficulty_factor)
   end
 
   def http_format_datetime(datetime \\ DateTime.now!("Etc/UTC")) do

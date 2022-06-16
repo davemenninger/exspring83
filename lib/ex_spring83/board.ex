@@ -29,4 +29,10 @@ defmodule ExSpring83.Board do
       {:error, :invalid_signature}
     end
   end
+
+  @spec boards_stored() :: integer()
+  def boards_stored do
+    {:ok, count} = Cachex.count(:boards)
+    count
+  end
 end
