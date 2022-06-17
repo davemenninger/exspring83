@@ -1,4 +1,8 @@
 defmodule ExSpring83.Server.Headers do
+  @moduledoc """
+  Plug to add Spring83 headers to every request
+  """
+
   import Plug.Conn
 
   alias ExSpring83.Server
