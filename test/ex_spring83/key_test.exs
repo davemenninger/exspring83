@@ -45,6 +45,10 @@ defmodule ExSpring83.KeyTest do
            |> Key.normalize()
            |> Key.valid_public_key?()
 
+    assert "810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049"
+           |> Key.normalize()
+           |> Key.valid_public_key?()
+
     refute 0xA43DB95EA4181BEC447B33FFE8914E3914CB74F468B2F8128FF20CB47F43EC98
            |> Key.normalize()
            |> Key.valid_public_key?()
