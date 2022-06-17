@@ -10,8 +10,17 @@ defmodule ExSpring83.Key do
 
   @type t :: %__MODULE__{integer: integer(), string: String.t(), binary: binary()}
 
-  @regex ~r/ed[0-9]{4}$/i
-  @valid_years 2022..2099
+  @regex ~r/83e(0[1-9]|1[0-2])(\d\d)$/i
+
+  @test_key %{
+    integer: 0xAB589F4DDE9FCE4180FCF42C7B05185B0A02A5D682E353FA39177995083E0583,
+    string: "AB589F4DDE9FCE4180FCF42C7B05185B0A02A5D682E353FA39177995083E0583",
+    binary:
+      <<171, 88, 159, 77, 222, 159, 206, 65, 128, 252, 244, 44, 123, 5, 24, 91, 10, 2, 165, 214,
+        130, 227, 83, 250, 57, 23, 121, 149, 8, 62, 5, 131>>
+  }
+
+  def test_key, do: struct(Key, @test_key)
 
   @doc """
   Validate if a key is a valid Spring83 key
@@ -58,39 +67,39 @@ defmodule ExSpring83.Key do
   """
   @spec valid_suffix?(Key.t()) :: boolean()
   def valid_suffix?(%Key{string: string}) when is_binary(string) do
-    String.match?(string, @regex) and match_year_range?(string)
+    # and match_year_range?(string)
+    String.match?(string, @regex)
   end
 
-  @spec match_year_range?(binary()) :: boolean()
-  def match_year_range?(string) do
-    last_four = String.slice(string, -4..-1)
-
-    case Integer.parse(last_four) do
-      :error -> false
-      {integer, ""} -> integer in @valid_years
-      _ -> false
-    end
-  end
-
+  # TODO: spec
   def normalize(public_key) when is_integer(public_key) do
-    %Key{
-      integer: public_key,
-      string: public_key |> Integer.to_string(16),
-      binary: public_key |> :binary.encode_unsigned()
-    }
+    {:ok,
+     %Key{
+       integer: public_key,
+       string: public_key |> Integer.to_string(16),
+       binary: public_key |> :binary.encode_unsigned()
+     }}
   end
 
   def normalize(public_key) when is_binary(public_key) do
     case Integer.parse(public_key, 16) do
       {i, ""} ->
-        %Key{
-          integer: i,
-          string: public_key |> String.upcase(),
-          binary: public_key |> String.upcase() |> Base.decode16!()
-        }
+        {:ok,
+         %Key{
+           integer: i,
+           string: public_key |> String.upcase(),
+           binary: public_key |> String.upcase() |> Base.decode16!()
+         }}
 
       _ ->
-        raise "can't parse string to integer"
+        {:error, "can't parse string to integer"}
+    end
+  end
+
+  def normalize!(public_key) do
+    case normalize(public_key) do
+      {:ok, %Key{} = key} -> key
+      {:error, error} -> raise error
     end
   end
 

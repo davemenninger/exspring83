@@ -4,53 +4,47 @@ defmodule ExSpring83.KeyTest do
 
   alias ExSpring83.Key
 
-  @test_key %Key{
-    integer: 0xFAD415FBAA0339C4FD372D8287E50F67905321CCFD9C43FA4C20AC40AFED1983,
-    string: "FAD415FBAA0339C4FD372D8287E50F67905321CCFD9C43FA4C20AC40AFED1983",
-    binary:
-      <<250, 212, 21, 251, 170, 3, 57, 196, 253, 55, 45, 130, 135, 229, 15, 103, 144, 83, 33, 204,
-        253, 156, 67, 250, 76, 32, 172, 64, 175, 237, 25, 131>>
-  }
-
   test "normalize to struct" do
-    assert @test_key ==
-             Key.normalize(0xFAD415FBAA0339C4FD372D8287E50F67905321CCFD9C43FA4C20AC40AFED1983)
+    assert Key.test_key() ==
+             Key.normalize!(0xAB589F4DDE9FCE4180FCF42C7B05185B0A02A5D682E353FA39177995083E0583)
 
-    assert @test_key ==
-             Key.normalize(
-               113_452_935_445_073_927_171_914_826_180_527_736_397_782_166_196_513_441_183_943_331_961_718_952_499_587
+    assert Key.test_key() ==
+             Key.normalize!(
+               77_502_079_126_469_152_300_067_950_456_082_758_891_841_919_142_306_220_715_969_033_340_501_723_317_635
              )
 
-    assert @test_key ==
-             Key.normalize("fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983")
+    assert Key.test_key() ==
+             Key.normalize!("ab589f4dde9fce4180fcf42c7b05185b0a02a5d682e353fa39177995083e0583")
 
-    assert @test_key ==
-             Key.normalize("FAD415FBAA0339C4FD372D8287E50F67905321CCFD9C43FA4C20AC40AFED1983")
+    assert Key.test_key() ==
+             Key.normalize!("AB589F4DDE9FCE4180FCF42C7B05185B0A02A5D682E353FA39177995083E0583")
   end
 
   test "valid_public_key?/1" do
-    assert "fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983"
-           |> Key.normalize()
+    assert "ab589f4dde9fce4180fcf42c7b05185b0a02a5d682e353fa39177995083e0583"
+           |> Key.normalize!()
            |> Key.valid_public_key?()
 
-    assert 0xFAD415FBAA0339C4FD372D8287E50F67905321CCFD9C43FA4C20AC40AFED1983
-           |> Key.normalize()
+    assert 0xAB589F4DDE9FCE4180FCF42C7B05185B0A02A5D682E353FA39177995083E0583
+           |> Key.normalize!()
            |> Key.valid_public_key?()
 
-    assert "1c6ffef2825b294274478bad8c80a7a610d38245a9fded18cd004c4a67ed2023"
-           |> Key.normalize()
+    assert "CA93846AE61903A862D44727C16FED4B80C0522CAB5E5B8B54763068B83E0623"
+           |> Key.normalize!()
            |> Key.valid_public_key?()
 
-    assert 0x1C6FFEF2825B294274478BAD8C80A7A610D38245A9FDED18CD004C4A67ED2023
-           |> Key.normalize()
+    assert 0xCA93846AE61903A862D44727C16FED4B80C0522CAB5E5B8B54763068B83E0623
+           |> Key.normalize!()
            |> Key.valid_public_key?()
 
-    assert "810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049"
-           |> Key.normalize()
+    assert "ca93846ae61903a862d44727c16fed4b80c0522cab5e5b8b54763068b83e0623"
+           |> Key.normalize!()
            |> Key.valid_public_key?()
+
+    # c761fd8e4abc6ee4ca6d0883a95b7f0c88d33835a085b382dfbfb435283e0623
 
     refute 0xA43DB95EA4181BEC447B33FFE8914E3914CB74F468B2F8128FF20CB47F43EC98
-           |> Key.normalize()
+           |> Key.normalize!()
            |> Key.valid_public_key?()
   end
 
@@ -58,8 +52,5 @@ defmodule ExSpring83.KeyTest do
   end
 
   test "valid_suffix?/1" do
-  end
-
-  test "match_year_range?/1" do
   end
 end

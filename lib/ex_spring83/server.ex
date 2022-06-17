@@ -22,102 +22,117 @@ defmodule ExSpring83.Server do
     send_resp(conn, 200, "difficulty_factor: #{difficulty_factor()}")
   end
 
-  # TODO: check for the test key in a plug
-  get "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
-    Logger.info("serving test key")
-
-    send_resp(
-      conn,
-      200,
-      "you asked for the test key! the current timestamp is: #{http_format_datetime()}"
-    )
-  end
-
   get "/:key" do
-    key = Key.normalize(key)
+    case Key.normalize(key) do
+      {:ok, %Key{} = key} ->
+        if key == Key.test_key() do
+          Logger.info("serving test key")
 
-    if Key.valid_public_key?(key) do
-      case @board_service.get(key) do
-        {:ok, nil} ->
-          conn
-          |> send_resp(404, "key #{key.string} not found")
+          send_resp(
+            conn,
+            200,
+            "you asked for the test key! the current timestamp is: #{http_format_datetime()}"
+          )
+        else
+          if Key.valid_public_key?(key) do
+            case @board_service.get(key) do
+              {:ok, nil} ->
+                conn
+                |> send_resp(404, "key #{key.string} not found")
 
-        {:ok, %Board{body: body, signature: signature}} ->
-          conn
-          |> put_resp_header("authorization", "Spring-83 #{signature}")
-          |> send_resp(200, "#{body}")
-      end
-    else
-      conn
-      |> send_resp(404, "invalid key #{key.string}")
+              {:ok, %Board{body: body, signature: signature}} ->
+                conn
+                |> put_resp_header("authorization", "Spring-83 #{signature}")
+                |> send_resp(200, "#{body}")
+            end
+          else
+            conn
+            |> send_resp(404, "invalid key #{key.string}")
+          end
+        end
+
+      # key couldn't be normalized
+      _ ->
+        conn
+        |> send_resp(404, "invalid key #{key.string}")
     end
   end
 
-  put "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983" do
-    send_resp(conn, 401, "you tried to publish the test key!")
-  end
-
   put "/:key" do
-    key = Key.normalize(key)
+    case Key.normalize(key) do
+      {:ok, %Key{} = key} ->
+        if key == Key.test_key() do
+          send_resp(conn, 401, "you tried to publish the test key!")
+        else
+          if Key.valid_public_key?(key) do
+            # TODO: case do we have this board already?
+            case Plug.Conn.get_req_header(conn, "if-unmodified-since") do
+              [date_string] ->
+                # TODO: compare this to the modified date on our copy of this board
+                case Timex.parse(date_string, "%a, %d %b %Y %H:%M:%S %Z", :strftime) do
+                  {:ok, dt} ->
+                    Logger.debug("if unmodified since: #{dt}")
+                    :TODO
 
-    if Key.valid_public_key?(key) do
-      # check if unmodified
-      case Plug.Conn.get_req_header(conn, "if-unmodified-since") do
-        [date_string] ->
-          # TODO: compare this to the modified date on our copy of this board
-          case Timex.parse(date_string, "%a, %d %b %Y %H:%M:%S %Z", :strftime) do
-            {:ok, dt} -> :TODO
-            _ -> :TODO
-          end
+                  _ ->
+                    :TODO
+                end
 
-        _ ->
-          :TODO
-      end
-
-      case Plug.Conn.read_body(conn, length: 2217) do
-        {:ok, body, conn} ->
-          [last_modified] =
-            body
-            |> Floki.parse_fragment!()
-            |> Floki.find("meta")
-            |> Floki.attribute("content")
-
-          Logger.debug("last modified: #{last_modified}")
-
-          # check signature
-          case Plug.Conn.get_req_header(conn, "authorization") do
-            ["Spring-83 Signature=" <> signature] ->
-              Logger.debug("sig: #{inspect(signature)}")
-
-              if Ed25519.valid_signature?(Base.decode16!(signature), body, key.binary) do
-                %Board{body: body, signature: signature} |> @board_service.put(key)
-              else
+              _ ->
                 :TODO
-              end
+            end
 
-            _ ->
-              :TODO
+            case Plug.Conn.read_body(conn, length: 2217) do
+              {:ok, body, conn} ->
+                [last_modified] =
+                  body
+                  |> Floki.parse_fragment!()
+                  |> Floki.find("meta")
+                  |> Floki.attribute("content")
+
+                Logger.debug("last modified: #{last_modified}")
+
+                # check signature
+                case Plug.Conn.get_req_header(conn, "authorization") do
+                  ["Spring-83 Signature=" <> signature] ->
+                    Logger.debug("sig: #{inspect(signature)}")
+
+                    if Ed25519.valid_signature?(Base.decode16!(signature), body, key.binary) do
+                      %Board{body: body, signature: signature} |> @board_service.put(key)
+                    else
+                      :TODO
+                    end
+
+                  _ ->
+                    :TODO
+                end
+
+                # The server must reject the PUT request, returning 400 Bad Request, if
+
+                # the board is transmitted without a last-modified meta tag; or
+                # it is transmitted with more than one last-modified meta tag; or
+                # its last-modified meta tag isn't parsable as an HTTP-format date and time; or
+                # its last-modified meta tag is set to a date in the future.
+
+                # MAX_SIG = (2**256 - 1)
+                # key_threshold = MAX_KEY * ( 1.0 - difficulty_factor ) = <an inscrutable gigantic number>
+                # The server must reject PUT requests for new keys that are not less than <an inscrutable gigantic number>.
+                conn
+                |> send_resp(202, "you gave me key: #{key.string} and body #{body}")
+
+              {:more, _partial_body, conn} ->
+                conn |> send_resp(413, "board too large")
+            end
+          else
+            conn
+            |> send_resp(400, "invalid key #{key.string}")
           end
+        end
 
-          # The server must reject the PUT request, returning 400 Bad Request, if
-
-          # the board is transmitted without a last-modified meta tag; or
-          # it is transmitted with more than one last-modified meta tag; or
-          # its last-modified meta tag isn't parsable as an HTTP-format date and time; or
-          # its last-modified meta tag is set to a date in the future.
-
-          # MAX_SIG = (2**256 - 1)
-          # key_threshold = MAX_KEY * ( 1.0 - difficulty_factor ) = <an inscrutable gigantic number>
-          # The server must reject PUT requests for new keys that are not less than <an inscrutable gigantic number>.
-          conn
-          |> send_resp(202, "you gave me key: #{key.string} and body #{body}")
-
-        {:more, _partial_body, conn} ->
-          conn |> send_resp(413, "board too large")
-      end
-    else
-      conn
-      |> send_resp(400, "invalid key #{key.string}")
+      # key couldn't be normalized
+      _ ->
+        conn
+        |> send_resp(404, "invalid key #{key.string}")
     end
   end
 

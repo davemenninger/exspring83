@@ -19,11 +19,11 @@ defmodule ExSpring83.BoardTest do
     end
 
     test "boards_stored/0", %{board: board, public_key: key} do
-      assert 0 == Board.boards_stored
+      assert 0 == Board.boards_stored()
       assert {:ok, _} = Board.put(board, key)
-      assert 1 == Board.boards_stored
+      assert 1 == Board.boards_stored()
       assert {:ok, _} = Board.put(board, key)
-      assert 1 == Board.boards_stored
+      assert 1 == Board.boards_stored()
     end
   end
 
@@ -36,10 +36,14 @@ defmodule ExSpring83.BoardTest do
     message = ~S(<meta http-equiv="last-modified" content="Sun, 12 Jun 2022 02:39:31 GMT">)
 
     public_key =
-      ExSpring83.Key.normalize("810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049")
+      ExSpring83.Key.normalize!(
+        "810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049"
+      )
 
     secret_key =
-      ExSpring83.Key.normalize("e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018")
+      ExSpring83.Key.normalize!(
+        "e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018"
+      )
 
     signature =
       Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()

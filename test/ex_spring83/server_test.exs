@@ -32,7 +32,7 @@ defmodule ExSpring83.ServerTest do
 
   test "responds for the test key" do
     conn =
-      conn(:get, "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983")
+      conn(:get, "/ab589f4dde9fce4180fcf42c7b05185b0a02a5d682e353fa39177995083e0583")
       |> Server.call([])
 
     assert conn.status == 200
@@ -55,7 +55,7 @@ defmodule ExSpring83.ServerTest do
     conn =
       conn(
         :put,
-        "/fad415fbaa0339c4fd372d8287e50f67905321ccfd9c43fa4c20ac40afed1983",
+        "/ab589f4dde9fce4180fcf42c7b05185b0a02a5d682e353fa39177995083e0583",
         "<p>a board</p>"
       )
       |> Server.call([])
@@ -66,10 +66,18 @@ defmodule ExSpring83.ServerTest do
   test "accepts a board with a valid signature" do
     message = ~S(<meta http-equiv="last-modified" content="Sun, 12 Jun 2022 02:39:31 GMT">)
 
-    public_key = ExSpring83.Key.normalize("810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049")
-    secret_key = ExSpring83.Key.normalize("e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018")
-    signature = Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()
+    public_key =
+      ExSpring83.Key.normalize!(
+        "810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049"
+      )
 
+    secret_key =
+      ExSpring83.Key.normalize!(
+        "e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018"
+      )
+
+    signature =
+      Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()
 
     conn =
       conn(:put, "/#{public_key.string}", "#{message}")
