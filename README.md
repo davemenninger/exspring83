@@ -1,5 +1,5 @@
 # ExSpring83
-[![Coverage Status](https://coveralls.io/repos/github/davemenninger/exspring83/badge.svg?branch=main)](https://coveralls.io/github/davemenninger/exspring83?branch=main)
+[![Elixir CI](https://github.com/davemenninger/exspring83/actions/workflows/elixir.yml/badge.svg)](https://github.com/davemenninger/exspring83/actions/workflows/elixir.yml) [![Coverage Status](https://coveralls.io/repos/github/davemenninger/exspring83/badge.svg?branch=main)](https://coveralls.io/github/davemenninger/exspring83?branch=main)
 
 This is an attempt to implement the Spring '83 spec designed by Robin Sloan at: [Spring '83](https://github.com/robinsloan/spring-83-spec/blob/main/draft-20220616.md)
 
@@ -27,3 +27,4 @@ Not implemented.  In the meantime:
          http://localhost:4040/<public_key>
            
 ```
+
