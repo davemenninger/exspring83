@@ -20,15 +20,16 @@ defmodule Mix.Tasks.Spring83.KeyGen do
     Key.puts_keypair({secret_key, public_key})
 
     # TODO: support looking for the current year + 1
-    key = public_key |> Base.encode16() |> Key.normalize()
+    key = public_key |> Base.encode16() |> Key.normalize!()
 
-    if Key.valid_public_key?(key) do
-      IO.puts("found one!")
-      Key.puts_keypair({secret_key, public_key})
-    else
-      # TODO don't sleep, use message passing
-      Process.sleep(@sleep)
-      run(args)
+    case Key.valid_public_key?(key) do
+      {:ok, %Key{} = _key} ->
+        IO.puts("found one!")
+        Key.puts_keypair({secret_key, public_key})
+      _ -> 
+        # TODO don't sleep, use message passing
+        Process.sleep(@sleep)
+        run(args)
     end
   end
 end
