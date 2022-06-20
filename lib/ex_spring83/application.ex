@@ -11,8 +11,8 @@ defmodule ExSpring83.Application do
     children = [
       # TODO: get some of these values from config
       {Plug.Cowboy, scheme: :http, plug: ExSpring83.Server, port: 4040},
-      # cache ttl for boards is 28 days per Spring '83 spec
-      {Cachex, name: :boards, expiration: expiration(default: :timer.hours(24) * 28)}
+      # cache ttl for boards is 22 days per Spring '83 spec
+      {Cachex, name: :boards, expiration: expiration(default: :timer.hours(24) * 22)}
     ]
 
     Logger.info("Starting application... http://localhost:4040/ ")
