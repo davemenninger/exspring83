@@ -7,9 +7,7 @@ defmodule ExSpring83.Server.Headers do
 
   alias ExSpring83.Server
 
-  def init(opts) do
-    opts
-  end
+  def init(opts), do: opts
 
   def call(conn, opts) do
     conn
