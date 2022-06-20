@@ -3,6 +3,7 @@ defmodule ExSpring83.Server do
   https://github.com/robinsloan/spring-83-spec/blob/main/draft-20220609.md#boards-on-the-server
   """
 
+  # TODO: disable logging in tests
   require Logger
 
   use Plug.Router
@@ -18,11 +19,14 @@ defmodule ExSpring83.Server do
   plug(ExSpring83.Server.Headers)
   plug(:dispatch)
 
+  # TODO: OPTIONS
+
   get "/" do
     send_resp(conn, 200, "difficulty_factor: #{difficulty_factor()}")
   end
 
   get "/:key" do
+    # TODO: convert to with
     case Key.normalize(key) do
       {:ok, %Key{} = key} ->
         if key == Key.test_key() do

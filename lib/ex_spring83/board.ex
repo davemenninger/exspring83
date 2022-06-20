@@ -12,6 +12,8 @@ defmodule ExSpring83.Board do
 
   @type t :: %__MODULE__{body: String.t(), signature: Ed25519.signature()}
 
+  # TODO: wrap the cachex responses, e.g. {:ok, nil} -> {:not_found, _}
+
   @spec get(Key.t()) :: {:ok, Board.t() | nil}
   def get(%Key{string: public_key}) do
     Cachex.get(:boards, public_key)
