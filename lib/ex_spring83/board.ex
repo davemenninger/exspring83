@@ -37,4 +37,14 @@ defmodule ExSpring83.Board do
     {:ok, count} = Cachex.count(:boards)
     count
   end
+
+  @spec sign(binary(), Ed25519.key(), Ed25519.key()) :: t()
+  def sign(message, secret_key, public_key) do
+    {:ok,
+     %Board{
+       body: message,
+       signature:
+         Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()
+     }}
+  end
 end
