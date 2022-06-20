@@ -68,12 +68,12 @@ defmodule ExSpring83.ServerTest do
 
     public_key =
       ExSpring83.Key.normalize!(
-        "810c9f534933a9509704f48ca670a0ad6bc09a1869a3e352c9e51eaa86ed2049"
+        "7c1e657c38be4571599554138a154b714231838b633895549bbdd1da283e1223"
       )
 
     secret_key =
       ExSpring83.Key.normalize!(
-        "e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018"
+        "6ecc90c03a308e5a3c79d1815874ee3770e25cc07cf63fddb160eace8d12efb0"
       )
 
     signature =
