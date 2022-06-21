@@ -3,7 +3,6 @@ defmodule ExSpring83.BoardTest do
   doctest ExSpring83
 
   alias ExSpring83.Board
-  alias ExSpring83.Key
 
   describe "store boards" do
     setup [:signed_board, :clear_cache]
@@ -25,6 +24,10 @@ defmodule ExSpring83.BoardTest do
       assert {:ok, _} = Board.put(board, key)
       assert 1 == Board.boards_stored()
     end
+  end
+
+  describe "sign boards" do
+    setup [:signed_board, :clear_cache]
 
     test "sign/3", %{message: message, secret_key: secret_key, public_key: public_key} do
       {:ok, signed_board} = Board.sign(message, secret_key, public_key)
