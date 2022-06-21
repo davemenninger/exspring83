@@ -25,6 +25,17 @@ defmodule ExSpring83.BoardTest do
       assert {:ok, _} = Board.put(board, key)
       assert 1 == Board.boards_stored()
     end
+
+    test "sign/3", %{message: message, secret_key: secret_key, public_key: public_key} do
+      {:ok, signed_board} = Board.sign(message, secret_key, public_key)
+
+      assert %Board{
+               body:
+                 "<meta http-equiv=\"last-modified\" content=\"Sun, 12 Jun 2022 02:39:31 GMT\">",
+               signature:
+                 "B268EB6D2E809511411E6CFDA1B48E0F5C2BE6C5808426A4D288F5293D0C5A19B3FC36D7802DD02CAEE1BA6DFD72E7F1253FDFB3C7ECD99975B12B9A67DACF05"
+             } == signed_board
+    end
   end
 
   defp clear_cache(_context) do
@@ -45,11 +56,11 @@ defmodule ExSpring83.BoardTest do
         "e2b1f474867de869c1b947baf14d49bec5826601a464c1c52dac3e6f1717c018"
       )
 
-    signature =
-      Ed25519.signature(message, secret_key.binary, public_key.binary) |> Base.encode16()
+    {:ok, board} = Board.sign(message, secret_key, public_key)
 
     [
-      board: %Board{body: message, signature: signature},
+      board: board,
+      message: message,
       public_key: public_key,
       secret_key: secret_key
     ]
